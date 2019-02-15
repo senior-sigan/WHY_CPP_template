@@ -8,10 +8,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -Wall -Werror -Wextra -Wzero-as-null
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake") # добавляем дополнительные модули CMake
 
-#подключаем библиотеку WHY_CPP
-find_package(WhyCpp REQUIRED)
-include_directories(SYSTEM ${WHYCPP_INCLUDE_DIRS})
-
 set(PROJECT_HEADERS_DIR ${PROJECT_SOURCE_DIR}/src)
 set(PROJECT_SOURCES_DIR ${PROJECT_SOURCE_DIR}/src)
 
@@ -20,4 +16,8 @@ file(GLOB_RECURSE SOURCES ${PROJECT_SOURCES_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${WHYCPP_LIBRARIES})
-file(COPY ${WHYCPP_LIBRARY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+#подключаем библиотеку WHY_CPP
+add_subdirectory(lib/WHY_CPP)
+target_include_directories(game PRIVATE lib/WHY_CPP/include)
+target_link_libraries(game PRIVATE whycpp)
