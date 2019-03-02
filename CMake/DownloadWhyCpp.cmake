@@ -4,8 +4,8 @@ project(whycpp-download NONE)
 
 include(ExternalProject)
 ExternalProject_Add(whycpp
-        URL               https://github.com/senior-sigan/WHY_CPP/archive/v1.4.tar.gz
-        URL_MD5           "ab81ca27cbb8fd4b382b72be29cd45d3"
+        URL               https://github.com/senior-sigan/WHY_CPP/archive/v1.4.1.tar.gz
+        URL_MD5           "ad05e25a275133a8fbda0a4968a0f01f"
         SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/whycpp-src"
         BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/whycpp-build"
         CONFIGURE_COMMAND ""
