@@ -11,6 +11,8 @@
 #include <whycpp/palette.h>
 #include <whycpp/lifecycle.h>
 #include <whycpp/text.h>
+#include <whycpp/import_sprites.h>
+#include <whycpp/animation.h>
 
 #define PI 3.14159265358979323846  /* pi */
 
@@ -24,9 +26,9 @@ class ChessBoard : public ApplicationListener {
     for (int x = 0; x < GetDisplayWidth(ctx); x++) {
       for (int y = 0; y < GetDisplayHeight(ctx); y++) {
         if (x % 2 == 0 && y % 2 == 0) {
-          SetPixel(ctx, x, y, {0, 0, 0, 0});
+          SetPixel(ctx, x, y, {0, 0, 0, 255});
         } else {
-          SetPixel(ctx, x, y, {255, 255, 255, 0});
+          SetPixel(ctx, x, y, {255, 255, 255, 255});
         }
       }
     }
@@ -42,9 +44,9 @@ class Prisma : public ApplicationListener {
     DrawClearScreen(ctx);
     static double t = 0;
 
-    const RGBA red = {255, 0, 0, 0};
-    const RGBA green = {0, 255, 0, 0};
-    const RGBA blue = {0, 0, 255, 0};
+    const RGBA red = {255, 0, 0, 255};
+    const RGBA green = {0, 255, 0, 255};
+    const RGBA blue = {0, 0, 255, 255};
 
     for (double i = fmod(t, 8.0); i < base; i += 8.0) {
       int x = static_cast<int>(i);
@@ -149,7 +151,47 @@ class Bubbles : public ApplicationListener {
   }
 };
 
-int main(int argc, char *argv[]) {
+class PngTexture : public ApplicationListener {
+  int id = -1;
+  std::shared_ptr<Animation> anim;
+ public:
+  void OnCreate(Context &context) override {
+    id = ImportSprite(context, "assets/atlas.png");
+    std::vector<std::pair<int, int>> sprites = {
+        {20 * 16, 40 * 16},
+        {21 * 16, 40 * 16},
+        {22 * 16, 40 * 16},
+        {23 * 16, 40 * 16},
+        {24 * 16, 40 * 16},
+        {20 * 16, 42 * 16},
+        {21 * 16, 42 * 16},
+        {22 * 16, 42 * 16},
+        {26 * 16, 40 * 16},
+        {20 * 16, 38 * 16},
+        {21 * 16, 38 * 16},
+        {22 * 16, 38 * 16},
+        {23 * 16, 38 * 16},
+        {24 * 16, 38 * 16},
+        {24 * 16, 38 * 16},
+        {26 * 16, 38 * 16},
+        {27 * 16, 38 * 16},
+        {28 * 16, 38 * 16},
+        {29 * 16, 38 * 16},
+        {30 * 16, 38 * 16},
+        {31 * 16, 38 * 16},
+    };
+    anim = std::make_shared<Animation>(16, 32, 8, sprites, id, true);
+  }
+
+  void OnRender(Context &context) override {
+    DrawSprite(context, id, 0, 0, 0, 0, GetDisplayWidth(context), GetDisplayHeight(context));
+    anim->Draw(context, 32, 32);
+    Print(context, "ANIMATION", 8, 64, PALETTE[3]);
+  }
+};
+
+int main() {
+  RunApp<PngTexture>();
   RunApp<Bubbles>();
   RunApp<HelloText>();
   RunApp<ButtonsTest>();
