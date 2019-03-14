@@ -1,20 +1,20 @@
-#include <iostream>
-#include <whycpp/application_listener.h>
-#include <whycpp/whycpp.h>
-#include <whycpp/drawing.h>
-#include <whycpp/time.h>
-#include <cmath>
-#include <vector>
-#include <whycpp/color.h>
-#include <whycpp/buttons.h>
-#include <whycpp/input.h>
-#include <whycpp/palette.h>
-#include <whycpp/lifecycle.h>
-#include <whycpp/text.h>
-#include <whycpp/import_sprites.h>
 #include <whycpp/animation.h>
+#include <whycpp/application_listener.h>
+#include <whycpp/buttons.h>
+#include <whycpp/color.h>
+#include <whycpp/drawing.h>
+#include <whycpp/import_sprites.h>
+#include <whycpp/input.h>
+#include <whycpp/lifecycle.h>
+#include <whycpp/palette.h>
+#include <whycpp/text.h>
+#include <whycpp/time.h>
+#include <whycpp/whycpp.h>
+#include <cmath>
+#include <iostream>
+#include <vector>
 
-#define PI 3.14159265358979323846  /* pi */
+#define PI 3.14159265358979323846 /* pi */
 
 int rnd(int bound) {
   return rand() % bound;
@@ -154,30 +154,15 @@ class Bubbles : public ApplicationListener {
 class PngTexture : public ApplicationListener {
   int id = -1;
   std::shared_ptr<Animation> anim;
+
  public:
   void OnCreate(Context &context) override {
     id = ImportSprite(context, "assets/atlas.png");
     std::vector<std::pair<int, int>> sprites = {
-        {20 * 16, 40 * 16},
-        {21 * 16, 40 * 16},
-        {22 * 16, 40 * 16},
-        {23 * 16, 40 * 16},
-        {24 * 16, 40 * 16},
-        {20 * 16, 42 * 16},
-        {21 * 16, 42 * 16},
-        {22 * 16, 42 * 16},
-        {26 * 16, 40 * 16},
-        {20 * 16, 38 * 16},
-        {21 * 16, 38 * 16},
-        {22 * 16, 38 * 16},
-        {23 * 16, 38 * 16},
-        {24 * 16, 38 * 16},
-        {24 * 16, 38 * 16},
-        {26 * 16, 38 * 16},
-        {27 * 16, 38 * 16},
-        {28 * 16, 38 * 16},
-        {29 * 16, 38 * 16},
-        {30 * 16, 38 * 16},
+        {20 * 16, 40 * 16}, {21 * 16, 40 * 16}, {22 * 16, 40 * 16}, {23 * 16, 40 * 16}, {24 * 16, 40 * 16},
+        {20 * 16, 42 * 16}, {21 * 16, 42 * 16}, {22 * 16, 42 * 16}, {26 * 16, 40 * 16}, {20 * 16, 38 * 16},
+        {21 * 16, 38 * 16}, {22 * 16, 38 * 16}, {23 * 16, 38 * 16}, {24 * 16, 38 * 16}, {24 * 16, 38 * 16},
+        {26 * 16, 38 * 16}, {27 * 16, 38 * 16}, {28 * 16, 38 * 16}, {29 * 16, 38 * 16}, {30 * 16, 38 * 16},
         {31 * 16, 38 * 16},
     };
     anim = std::make_shared<Animation>(16, 32, 8, sprites, id, true);
@@ -190,8 +175,24 @@ class PngTexture : public ApplicationListener {
   }
 };
 
+class MouseTest : public ApplicationListener {
+ public:
+  void OnRender(Context &ctx) override {
+    int x = 0;
+    int y = 0;
+    GetMouse(ctx, x, y);
+    if (IsPressed(ctx, MOUSE_BUTTON_LEFT)) {
+      DrawCircleFill(ctx, x, y, 2, PALETTE[3]);
+    } else if (IsPressed(ctx, MOUSE_BUTTON_RIGHT)) {
+      DrawCircleFill(ctx, x, y, 2, PALETTE[4]);
+    } else {
+      DrawCircleFill(ctx, x, y, 2, PALETTE[5]);
+    }
+  }
+};
+
 int main() {
-  RunApp<PngTexture>();
+  RunApp<MouseTest>();
   RunApp<Bubbles>();
   RunApp<HelloText>();
   RunApp<ButtonsTest>();
@@ -200,6 +201,7 @@ int main() {
   RunApp<Prisma>();
   RunApp<ChessBoard>();
   RunApp<RandomLines>();
+  RunApp<PngTexture>();
 
   return 0;
 }
