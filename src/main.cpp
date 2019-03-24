@@ -6,19 +6,35 @@
 #include <whycpp/import_sprites.h>
 #include <whycpp/input.h>
 #include <whycpp/lifecycle.h>
+#include <whycpp/log.h>
 #include <whycpp/palette.h>
 #include <whycpp/text.h>
 #include <whycpp/time.h>
 #include <whycpp/whycpp.h>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <vector>
 
-#define PI 3.14159265358979323846 /* pi */
+class TrueRandom {
+ public:
+  TrueRandom() {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+  }
 
-int rnd(int bound) {
-  return rand() % bound;
-}
+  int NextInt(int min, int max) const {
+    if (min == max) return min;
+    // there is a problem in MinGW implementation of random. So use old school rand.
+    // A notable implementation where std::random_device is deterministic is MinGW (bug 338),
+    // although replacement implementations exist, such as mingw-std-random_device.
+    return std::rand() % (max - min) + min;
+  }
+
+  int Bound(int max) const {
+    return NextInt(0, max);
+  }
+};
 
 class ChessBoard : public ApplicationListener {
  public:
@@ -36,6 +52,8 @@ class ChessBoard : public ApplicationListener {
 };
 
 class Prisma : public ApplicationListener {
+  const double PI = 3.14159265358979323846;
+
  public:
   void OnRender(Context &ctx) override {
     const int base = 143;
@@ -53,7 +71,7 @@ class Prisma : public ApplicationListener {
       int y = static_cast<int>(base - i);
       DrawLine(ctx, x, 0, 0, y, red);
       DrawLine(ctx, x, base, base, y, green);
-      t += 0.005;
+      t += GetDelta(ctx);
     }
 
     for (double i = fmod(t / 16, pi8); i < pi2; i += pi8) {
@@ -71,11 +89,17 @@ class Prisma : public ApplicationListener {
 };
 
 class Fade : public ApplicationListener {
+  TrueRandom rnd;
+
  public:
+  void OnCreate(Context &ctx) override {
+    DrawClearScreen(ctx, PALETTE[0]);
+  }
+
   void OnRender(Context &ctx) override {
     for (int i = 0; i < 2000; i++) {
-      int x = rnd(GetDisplayWidth(ctx));
-      int y = rnd(GetDisplayHeight(ctx));
+      int x = rnd.Bound(GetDisplayWidth(ctx));
+      int y = rnd.Bound(GetDisplayHeight(ctx));
 
       const RGBA &color = PALETTE[static_cast<int>(GetTime(ctx)) % PALETTE_LEN];
       SetPixel(ctx, x, y, color);
@@ -94,13 +118,18 @@ class PaletteShow : public ApplicationListener {
 };
 
 class RandomLines : public ApplicationListener {
- public:
-  void OnRender(Context &ctx) override {
-    int x0 = rnd(GetDisplayWidth(ctx));
-    int y0 = rnd(GetDisplayHeight(ctx));
+  TrueRandom rnd;
 
-    int x1 = rnd(GetDisplayWidth(ctx));
-    int y1 = rnd(GetDisplayHeight(ctx));
+ public:
+  void OnCreate(Context &ctx) override {
+    DrawClearScreen(ctx, PALETTE[0]);
+  }
+  void OnRender(Context &ctx) override {
+    int x0 = rnd.Bound(GetDisplayWidth(ctx));
+    int y0 = rnd.Bound(GetDisplayHeight(ctx));
+
+    int x1 = rnd.Bound(GetDisplayWidth(ctx));
+    int y1 = rnd.Bound(GetDisplayHeight(ctx));
 
     const RGBA &color = PALETTE[static_cast<int>(GetTime(ctx)) % PALETTE_LEN];
 
@@ -124,9 +153,6 @@ class ButtonsTest : public ApplicationListener {
     }
     if (IsPressed(ctx, Button::KEY_RIGHT)) {
       DrawClearScreen(ctx, PALETTE[4]);
-    }
-    if (IsPressed(ctx, Button::KEY_SPACE)) {
-      ExitApp(ctx);
     }
   }
 };
@@ -191,17 +217,76 @@ class MouseTest : public ApplicationListener {
   }
 };
 
-int main() {
-  RunApp<MouseTest>();
-  RunApp<Bubbles>();
-  RunApp<HelloText>();
-  RunApp<ButtonsTest>();
-  RunApp<PaletteShow>();
-  RunApp<Fade>();
-  RunApp<Prisma>();
-  RunApp<ChessBoard>();
-  RunApp<RandomLines>();
-  RunApp<PngTexture>();
+class FpsLogger {
+  const int timer = 1;  // print each 1 second
+  double sum = 0;
+  int i = 0;
 
+ public:
+  void Log(double delta_time) {
+    sum += delta_time;
+    i++;
+    if (sum >= timer) {
+//      auto avg_dt = sum / i;
+//      auto fps = int(1.0 / avg_dt);
+      // TODO: print somehow on the screen
+      i = 0;
+      sum -= timer;
+    }
+  }
+};
+
+class Show : public ApplicationListener {
+  std::vector<std::unique_ptr<ApplicationListener>> apps{};
+  size_t current_app = 0;
+  size_t prev_app = 0;
+  FpsLogger logger{};
+
+ public:
+  Show() {
+    apps.push_back(std::make_unique<MouseTest>());
+    apps.push_back(std::make_unique<Bubbles>());
+    apps.push_back(std::make_unique<HelloText>());
+    apps.push_back(std::make_unique<ButtonsTest>());
+    apps.push_back(std::make_unique<PaletteShow>());
+    apps.push_back(std::make_unique<Fade>());
+    apps.push_back(std::make_unique<Prisma>());
+    apps.push_back(std::make_unique<ChessBoard>());
+    apps.push_back(std::make_unique<RandomLines>());
+    apps.push_back(std::make_unique<PngTexture>());
+
+    prev_app = apps.size();
+    current_app = 0;
+  }
+
+  void OnRender(Context &ctx) override {
+    logger.Log(GetDelta(ctx));
+    if (prev_app != current_app) {
+      if (prev_app != apps.size()) {
+        apps.at(prev_app)->OnDispose(ctx);
+      }
+      apps.at(current_app)->OnCreate(ctx);
+      prev_app = current_app;
+    }
+
+    apps.at(current_app)->OnRender(ctx);
+
+    if (IsClicked(ctx, Button::KEY_SPACE)) {
+      current_app = (current_app + 1) % apps.size();
+      LogInfo("Transition to the %d", current_app);
+    }
+    if (IsClicked(ctx, Button::KEY_ESCAPE)) {
+      ExitApp(ctx);
+    }
+  }
+
+  ~Show() override {
+    apps.clear();
+  }
+};
+
+int main() {
+  SetLogLevel(LogLevel::DEBUG);
+  RunApp<Show>(ApplicationConfig(256, 144, "Application", false, 3, 16));
   return 0;
 }
