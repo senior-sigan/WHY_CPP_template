@@ -273,7 +273,7 @@ class Show : public ApplicationListener {
 
     if (IsClicked(ctx, Button::KEY_SPACE)) {
       current_app = (current_app + 1) % apps.size();
-      LogInfo("Transition to the %d", current_app);
+      LOG_INFO("Transition to the %d", current_app);
     }
     if (IsClicked(ctx, Button::KEY_ESCAPE)) {
       ExitApp(ctx);

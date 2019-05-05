@@ -137,5 +137,5 @@ Temporary Items
 .apdisk
 
 .idea
-cmake-build-debug
+cmake-build-debug*
 build
