@@ -19,11 +19,11 @@ set(PROJECT_SOURCES_DIR ${PROJECT_SOURCE_DIR}/src)
 file(GLOB_RECURSE HEADERS ${PROJECT_HEADERS_DIR}/*.h)
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCES_DIR}/*.cpp)
 
-file(COPY src/assets/atlas.png DESTINATION ${CMAKE_BINARY_DIR}/assets)
+file(COPY src/assets DESTINATION ${CMAKE_BINARY_DIR})
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${WHYCPP_LIBRARIES})
 
-set(SDL2_FROM_SOURCE ON)
+set(SDL2_FROM_SOURCE OFF)
 include(ConfigureWhyCpp)
 target_link_libraries(${PROJECT_NAME} whycpp)
