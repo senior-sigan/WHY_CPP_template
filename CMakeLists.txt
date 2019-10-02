@@ -24,6 +24,5 @@ file(COPY src/assets DESTINATION ${CMAKE_BINARY_DIR})
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${WHYCPP_LIBRARIES})
 
-set(SDL2_FROM_SOURCE OFF)
 include(ConfigureWhyCpp)
 target_link_libraries(${PROJECT_NAME} whycpp)
